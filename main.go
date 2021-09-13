@@ -1,67 +1,51 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/opentracing/opentracing-go"
-	zipkinot "github.com/openzipkin-contrib/zipkin-go-opentracing"
 	"github.com/openzipkin/zipkin-go"
+	zkhttpmw "github.com/openzipkin/zipkin-go/middleware/http"
 	"github.com/openzipkin/zipkin-go/reporter"
-	zkHttp "github.com/openzipkin/zipkin-go/reporter/http"
+	zkhttpreporter "github.com/openzipkin/zipkin-go/reporter/http"
 )
 
 var (
 	zkReporter reporter.Reporter
-	zkTracer   opentracing.Tracer
 )
 
 const (
-	serviceName     = "zipkin_gin_server"
+	serviceName     = "zipkin_http_server"
 	serviceEndpoint = "localhost:8080"
 	zipkinAddr      = "http://127.0.0.1:9411/api/v2/spans"
 )
 
-func initZipkinTracer(engine *gin.Engine) error {
-	zkReporter = zkHttp.NewReporter(zipkinAddr)
+func Pong(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Pong")
+	return
+}
+
+func initMux() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/ping", Pong)
+
+	zkReporter = zkhttpreporter.NewReporter(zipkinAddr)
 	endpoint, err := zipkin.NewEndpoint(serviceName, serviceEndpoint)
 	if err != nil {
 		log.Fatalf("unable to create local endpoint: %+v\n", err)
-		return err
 	}
-	nativeTracer, err := zipkin.NewTracer(
+	tracer, err := zipkin.NewTracer(
 		zkReporter, zipkin.WithTraceID128Bit(true),
 		zipkin.WithLocalEndpoint(endpoint),
 	)
-	if err != nil {
-		log.Fatalf("unable to create tracer: %+v\n", err)
-		return err
-	}
-	zkTracer = zipkinot.Wrap(nativeTracer)
-	opentracing.SetGlobalTracer(zkTracer)
 
-	// 将tracer注入到gin的中间件中
-	engine.Use(func(c *gin.Context) {
-		span := zkTracer.StartSpan(c.FullPath())
-		defer span.Finish()
-		c.Next()
-	})
-	return nil
+	zkMiddleware := zkhttpmw.NewServerMiddleware(tracer)
+	return zkMiddleware(mux)
 }
 
 func main() {
-	engine := gin.Default()
+	mux := initMux()
 
-	err := initZipkinTracer(engine)
-	if err != nil {
-		panic(err)
-	}
-	defer zkReporter.Close()
-
-	engine.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "pong")
-	})
-
-	engine.Run(":8080")
+	http.ListenAndServe(":8080", mux)
 }
