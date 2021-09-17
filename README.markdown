@@ -84,11 +84,15 @@ http reporter 的数据结构
 
 ## 参考链接
 
-+ https://zhuanlan.zhihu.com/p/95054724
-+ https://www.scalyr.com/blog/zipkin-tutorial-distributed-tracing/
 + https://pkg.go.dev/github.com/openzipkin/zipkin-go#section-readme
 + https://zipkin.io/zipkin-api/
 + https://zipkin.io/pages/instrumenting.html
 + https://www.cnblogs.com/zhoubaojian/articles/7852358.html
-+ https://bigbully.github.io/Dapper-translation/
 + https://github.com/bigbully/Dapper-translation/blob/master/dapper%E5%88%86%E5%B8%83%E5%BC%8F%E8%B7%9F%E8%B8%AA%E7%B3%BB%E7%BB%9F%E5%8E%9F%E6%96%87.pdf
++ [zipkin tutorial](https://www.scalyr.com/blog/zipkin-tutorial-distributed-tracing/)
++ [zipkin tutorial翻译](https://zhuanlan.zhihu.com/p/95054724)
++ [openzipkin 文档](https://www.cxyzjd.com/article/lz710117239/89107748)
++ [dapper 论文](https://research.google/pubs/pub36356/)
++ [dapper 论文翻译](https://bigbully.github.io/Dapper-translation/)
++ [dapper 论文翻译](https://github.com/AlphaWang/alpha-dapper-translation-zh)
++ [dapper 论文总结](https://www.cxyzjd.com/article/lz710117239/89107748)
